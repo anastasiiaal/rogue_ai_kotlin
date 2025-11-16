@@ -61,4 +61,5 @@ dependencies {
     implementation(libs.logging.interceptor)
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
+    implementation(libs.androidx.compose.foundation)
 }
