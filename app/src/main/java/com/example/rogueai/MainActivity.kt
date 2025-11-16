@@ -24,54 +24,25 @@ class MainActivity : ComponentActivity() {
         setContent {
             RogueaiTheme {
 
-                // Client REST pour parler au backend
                 val roomsApi = remember { RoomsApi() }
 
-                // Code de la room actuelle (null = on est sur l'écran d'accueil)
                 var lobbyRoomCode by remember { mutableStateOf<String?>(null) }
 
                 if (lobbyRoomCode == null) {
-                    // Écran d'accueil : on peut créer une partie
                     HomeScreen(
                         roomsApi = roomsApi,
                         onRoomCreated = { code ->
                             lobbyRoomCode = code
+                        },
+                        onRoomJoined = { code ->
+                            lobbyRoomCode = code
                         }
                     )
                 } else {
-                    // Écran placeholder simple pour le lobby
                     SimpleLobbyPlaceholderScreen(
                         roomCode = lobbyRoomCode!!,
-                        onLeave = {
-                            // Pour l'instant on se contente de "quitter" la room
-                            lobbyRoomCode = null
-                        }
+                        onLeave = { lobbyRoomCode = null }
                     )
-
-                    /*
-                    // 🔜 PLUS TARD : on remettra ici toute la vraie logique Lobby / Game / GameOver.
-                    // Exemple (pseudocode) – à réactiver seulement quand tout le reste sera codé :
-
-                    // val sharedSocket = remember { RoomSocket() }
-                    // var inGame by remember { mutableStateOf(false) }
-                    // var showGameOver by remember { mutableStateOf(false) }
-                    // var lastWin by remember { mutableStateOf(false) }
-                    // var lastHistory by remember { mutableStateOf(emptyList<TryEntry>()) }
-
-                    // val lobbyVm: LobbyViewModel = viewModel(
-                    //     factory = LobbyViewModelFactory(sharedSocket, lobbyRoomCode!!)
-                    // )
-
-                    // val endResult by sharedSocket.observeGameEnd().collectAsState(initial = null)
-
-                    // LaunchedEffect(endResult) { ... }
-
-                    // when {
-                    //     showGameOver -> GameOverScreen(...)
-                    //     inGame -> GameScreen(...)
-                    //     else -> LobbyScreen(...)
-                    // }
-                    */
                 }
             }
         }
