@@ -59,4 +59,23 @@ class RoomsApi(
             )
         }
     }
+
+    suspend fun roomExists(code: String): Boolean = withContext(Dispatchers.IO) {
+        val request = Request.Builder()
+            .url("$baseUrl/room-exists/$code")
+            .get()
+            .build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                throw IOException("roomExists failed: HTTP ${response.code}")
+            }
+
+            val responseBody = response.body?.string()
+                ?: throw IOException("Empty body from room-exists")
+
+            val obj = JSONObject(responseBody)
+            obj.getBoolean("exists")
+        }
+    }
 }
