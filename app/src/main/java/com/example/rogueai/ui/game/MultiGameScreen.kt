@@ -16,9 +16,10 @@ import com.example.rogueai.network.RoomSocket
 import org.json.JSONObject
 
 /**
- * Écran de jeu multijoueur V1 :
+ * Écran de jeu multijoueur :
  * - affiche l’état du jeu (game_state)
  * - affiche le player_board : menace, instruction, liste des commandes
+ * - affiche l’écran de fin (win/lose) quand le backend envoie end_state
  */
 @Composable
 fun MultiGameScreen(
@@ -28,7 +29,26 @@ fun MultiGameScreen(
 ) {
     val gameState by roomSocket.gameState.collectAsState()
     val playerBoardJson by roomSocket.playerBoard.collectAsState()
+    val gameEndedJson by roomSocket.gameEnded.collectAsState()
 
+    // 🔹 On copie dans une variable locale non déléguée
+    val endState = gameEndedJson
+
+    // 🔹 Si la partie est terminée → on affiche l’écran de fin
+    if (endState != null) {
+        val win = endState.optBoolean("win", false)
+        val tryHistoryArray = endState.optJSONArray("tryHistory")
+        val tryCount = tryHistoryArray?.length() ?: 0
+
+        GameOverScreen(
+            win = win,
+            tryCount = tryCount,
+            onBackToHome = onLeave
+        )
+        return
+    }
+
+    // 🔹 Sinon, on affiche l’écran de jeu "normal"
     val threat = playerBoardJson?.optInt("threat")
     val instruction = playerBoardJson?.optJSONObject("instruction")
     val board = playerBoardJson?.optJSONObject("board")
