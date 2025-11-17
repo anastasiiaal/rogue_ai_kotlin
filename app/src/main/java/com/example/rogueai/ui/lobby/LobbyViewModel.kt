@@ -2,10 +2,7 @@ package com.example.rogueai.ui.lobby
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
 import com.example.rogueai.data.LobbyRepository
-import kotlinx.coroutines.launch
-import org.json.JSONObject
 
 class LobbyViewModel(
     private val repo: LobbyRepository,
@@ -16,6 +13,7 @@ class LobbyViewModel(
     val players = repo.observePlayers()
     val gameStarted = repo.observeGameStarted()
     val gameState = repo.observeGameState()
+    val playerBoard = repo.observePlayerBoard() // utile plus tard si besoin en lobby
 
     init {
         repo.connect(roomCode)
