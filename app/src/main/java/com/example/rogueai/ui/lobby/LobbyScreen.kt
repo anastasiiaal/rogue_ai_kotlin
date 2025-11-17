@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun LobbyScreen(
+    roomCode: String,
     viewModel: LobbyViewModel,
     onLeave: () -> Unit,
     onNavigateToGame: () -> Unit
@@ -19,9 +20,16 @@ fun LobbyScreen(
     val gameStarted by viewModel.gameStarted.collectAsState()
 
     var ready by remember { mutableStateOf(false) }
+    val gameState by viewModel.gameState.collectAsState()
 
-    if (gameStarted) {
-        onNavigateToGame()
+    Text(text = "État du jeu : $gameState")
+
+
+    // Navigation automatique si le backend envoie un vrai "start"
+    LaunchedEffect(gameStarted) {
+        if (gameStarted) {
+            onNavigateToGame()
+        }
     }
 
     Box(
@@ -39,10 +47,24 @@ fun LobbyScreen(
                 style = MaterialTheme.typography.headlineMedium
             )
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Code de la room : $roomCode",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
-            players.forEach { player ->
-                Text(text = "• ${player.optString("display_name")} (ready: ${player.optBoolean("is_ready")})")
+            if (players.isEmpty()) {
+                Text("En attente des joueurs…")
+            } else {
+                players.forEach { player ->
+                    Text(
+                        text = "• ${player.optString("display_name", "Joueur")} " +
+                                "(ready: ${player.optBoolean("is_ready")})"
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -56,9 +78,21 @@ fun LobbyScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // 🔹 Bouton temporaire pour forcer le démarrage côté client
+            Button(
+                onClick = {
+                    onNavigateToGame()
+                }
+            ) {
+                Text("Lancer la partie (debug)")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             Button(onClick = onLeave) {
                 Text("Quitter la room")
             }
         }
     }
 }
+

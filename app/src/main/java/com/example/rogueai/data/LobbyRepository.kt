@@ -23,4 +23,6 @@ class LobbyRepository(private val socket: RoomSocket) {
     fun sendReady(ready: Boolean) {
         socket.sendReadyFlag(ready)
     }
+
+    fun observeGameState(): StateFlow<String> = socket.gameState
 }

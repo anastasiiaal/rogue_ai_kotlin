@@ -15,6 +15,7 @@ class LobbyViewModel(
     val roomInfo = repo.observeRoomInfo()
     val players = repo.observePlayers()
     val gameStarted = repo.observeGameStarted()
+    val gameState = repo.observeGameState()
 
     init {
         repo.connect(roomCode)
