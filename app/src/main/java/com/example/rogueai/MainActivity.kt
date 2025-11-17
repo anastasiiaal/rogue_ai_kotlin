@@ -70,6 +70,7 @@ class MainActivity : ComponentActivity() {
                     lobbyRoomCode != null -> {
 
                         val lobbyVm: LobbyViewModel = viewModel(
+                            key = "lobby-${lobbyRoomCode!!}",
                             factory = LobbyViewModelFactory(
                                 repo = LobbyRepository(sharedSocket),
                                 roomCode = lobbyRoomCode!!

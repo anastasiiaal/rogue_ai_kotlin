@@ -22,48 +22,54 @@ class RoomSocket {
     private var webSocket: WebSocket? = null
     private var currentRoomCode: String? = null
 
-    // --- StateFlows exposés au reste de l’app ---
+    // --- StateFlows exposés ---
 
-    // Infos de la room (you, players, room_state, level, etc.)
     private val _roomInfo = MutableStateFlow<JSONObject?>(null)
     val roomInfo: StateFlow<JSONObject?> = _roomInfo
 
-    // Liste de joueurs (extraite de room_info.players)
     private val _players = MutableStateFlow<List<JSONObject>>(emptyList())
     val players: StateFlow<List<JSONObject>> = _players
 
-    // Dernier game_state brut ("lobby_waiting", "lobby_ready", "timer_before_start", "game_start", "end_state", etc.)
     private val _gameState = MutableStateFlow("unknown")
     val gameState: StateFlow<String> = _gameState
 
-    // True si on considère que la partie est "en cours" côté client
     private val _gameStarted = MutableStateFlow(false)
     val gameStarted: StateFlow<Boolean> = _gameStarted
 
-    // Fin de partie (payload de game_state avec state = end_state)
     private val _gameEnded = MutableStateFlow<JSONObject?>(null)
     val gameEnded: StateFlow<JSONObject?> = _gameEnded
 
-    // Board du joueur + instruction + threat (message player_board)
     private val _playerBoard = MutableStateFlow<JSONObject?>(null)
     val playerBoard: StateFlow<JSONObject?> = _playerBoard
 
-    // ----------------------------------------------------------------
-    // Connexion / déconnexion
+    // 🔍 Debug : dernier message brut reçu
+    private val _lastRawMessage = MutableStateFlow<String?>(null)
+    val lastRawMessage: StateFlow<String?> = _lastRawMessage
+
     // ----------------------------------------------------------------
 
     fun openRoomConnection(roomCode: String) {
         currentRoomCode = roomCode
 
-        // D’après ta doc : wss://backend.rogueai.surpuissant.io/?room=${roomCode}
         val request = Request.Builder()
             .url("wss://backend.rogueai.surpuissant.io/?room=$roomCode")
             .build()
 
+        println("WS: trying to connect to ${request.url}")
+
         webSocket = client.newWebSocket(request, socketListener)
+
+        // reset de l’état local
+        _gameState.value = "unknown"
+        _gameStarted.value = false
+        _gameEnded.value = null
+        _playerBoard.value = null
+        _roomInfo.value = null
+        _players.value = emptyList()
     }
 
     fun closeRoomConnection() {
+        println("WS: closing socket for room $currentRoomCode")
         webSocket?.close(1000, "Leaving room")
         webSocket = null
     }
@@ -76,28 +82,18 @@ class RoomSocket {
     }
 
     // ----------------------------------------------------------------
-    // ENVOIS vers le backend
+    // ENVOI
     // ----------------------------------------------------------------
 
-    /**
-     * D’après la doc :
-     * { type: "room", payload: { ready: true } }
-     */
     fun sendReadyFlag(ready: Boolean): Boolean {
         val msg = JSONObject()
             .put("type", "room")
             .put("payload", JSONObject().put("ready", ready))
 
+        println("WS SEND: $msg")
         return webSocket?.send(msg.toString()) ?: false
     }
 
-    /**
-     * D’après la doc :
-     * {
-     *   type: "execute_action",
-     *   payload: { command_id: "...", action: "..." }
-     * }
-     */
     fun sendExecuteAction(commandId: String, action: String): Boolean {
         val payload = JSONObject()
             .put("command_id", commandId)
@@ -107,20 +103,25 @@ class RoomSocket {
             .put("type", "execute_action")
             .put("payload", payload)
 
+        println("WS SEND: $msg")
         return webSocket?.send(msg.toString()) ?: false
     }
 
     // ----------------------------------------------------------------
-    // Listener WebSocket
+    // LISTENER
     // ----------------------------------------------------------------
 
     private val socketListener = object : WebSocketListener() {
 
         override fun onOpen(webSocket: WebSocket, response: Response) {
-            println("WS OPENED for room $currentRoomCode")
+            println("WS OPENED for room $currentRoomCode (code=${response.code})")
+            _gameState.value = "opened"  // 👈 DEBUG : juste pour voir que la connexion est OK
         }
 
         override fun onMessage(webSocket: WebSocket, text: String) {
+            println("WS RECV: $text")
+            _lastRawMessage.value = text
+
             try {
                 val json = JSONObject(text)
                 val type = json.optString("type")
@@ -128,7 +129,6 @@ class RoomSocket {
 
                 when (type) {
 
-                    // Infos de room complètes
                     "room_info" -> {
                         _roomInfo.value = payload
 
@@ -141,7 +141,6 @@ class RoomSocket {
                         }
                     }
 
-                    // Changement d’état global de la partie
                     "game_state" -> {
                         val state = payload.optString("state")
                         _gameState.value = state   // ICI qu’on met _gameState.value = state
@@ -164,7 +163,6 @@ class RoomSocket {
                         }
                     }
 
-                    // Plateau + instruction + menace pour le joueur
                     "player_board" -> {
                         _playerBoard.value = payload   // 👈 Maintenant ce champ existe, donc plus d’erreur
                     }
@@ -176,6 +174,7 @@ class RoomSocket {
 
             } catch (t: Throwable) {
                 println("WS ERROR parsing message: $t")
+                _gameState.value = "parse_error"
             }
         }
 
@@ -184,11 +183,12 @@ class RoomSocket {
         }
 
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-            println("WS FAILURE: $t")
+            println("WS FAILURE: $t ; response=$response")
+            _gameState.value = "failure:${t.javaClass.simpleName}"
         }
 
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-            println("WS CLOSED: $reason")
+            println("WS CLOSED: code=$code reason=$reason")
         }
     }
 }

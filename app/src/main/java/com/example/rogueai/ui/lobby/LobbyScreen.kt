@@ -19,10 +19,15 @@ fun LobbyScreen(
     val players by viewModel.players.collectAsState()
     val gameStarted by viewModel.gameStarted.collectAsState()
     val gameState by viewModel.gameState.collectAsState()
+    val roomInfo by viewModel.roomInfo.collectAsState()
+    val lastRawMessage by viewModel.lastRawMessage.collectAsState()
 
     var ready by remember { mutableStateOf(false) }
 
-    // Navigation automatique si le backend envoie "timer_before_start" / "game_start"
+    LaunchedEffect(roomCode) {
+        viewModel.connect()
+    }
+
     LaunchedEffect(gameStarted) {
         if (gameStarted) {
             onNavigateToGame()
@@ -38,40 +43,30 @@ fun LobbyScreen(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Text("Lobby Rogue AI", style = MaterialTheme.typography.headlineMedium)
+            Spacer(Modifier.height(8.dp))
 
-            Text(
-                text = "Lobby Rogue AI",
-                style = MaterialTheme.typography.headlineMedium
-            )
+            Text("Code de la room (client) : $roomCode")
+            Spacer(Modifier.height(4.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Text("État du jeu (backend) : $gameState")
+            Spacer(Modifier.height(4.dp))
 
-            Text(
-                text = "Code de la room : $roomCode",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "État du jeu (backend) : $gameState",
-                style = MaterialTheme.typography.bodySmall
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
+            Text("Joueurs vus : ${players.size}")
+            Spacer(Modifier.height(8.dp))
 
             if (players.isEmpty()) {
-                Text("En attente des joueurs…")
+                Text("Aucun joueur (selon backend)")
             } else {
                 players.forEach { player ->
                     Text(
-                        text = "• ${player.optString("name", "Joueur")} " +
-                                "(ready: ${player.optBoolean("ready")})"
+                        text = "• ${player.optString("name", "Joueur")} (ready: ${player.optBoolean("ready")})",
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(Modifier.height(16.dp))
 
             Button(onClick = {
                 ready = !ready
@@ -80,10 +75,30 @@ fun LobbyScreen(
                 Text(if (ready) "Annuler Ready" else "Je suis prêt")
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
             Button(onClick = onLeave) {
                 Text("Quitter la room")
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            // DEBUG: room_info brut tronqué
+            roomInfo?.let { info ->
+                Text(
+                    text = "room_info:\n" + info.toString(2).take(220) + if (info.toString().length > 220) "..." else "",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // DEBUG: dernier message WS brut
+            lastRawMessage?.let { raw ->
+                Text(
+                    text = "Dernier WS:\n" + raw.take(220) + if (raw.length > 220) "..." else "",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }

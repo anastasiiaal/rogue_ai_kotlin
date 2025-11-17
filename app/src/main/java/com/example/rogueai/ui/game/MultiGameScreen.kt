@@ -18,8 +18,9 @@ import org.json.JSONObject
 /**
  * Écran de jeu multijoueur :
  * - affiche l’état du jeu (game_state)
- * - affiche le player_board : menace, instruction, liste des commandes
- * - affiche l’écran de fin (win/lose) quand le backend envoie end_state
+ * - affiche le player_board : menace, instruction, commandes
+ * - permet d’envoyer des actions (execute_action) au backend
+ * - montre l’écran de fin quand end_state arrive
  */
 @Composable
 fun MultiGameScreen(
@@ -31,7 +32,7 @@ fun MultiGameScreen(
     val playerBoardJson by roomSocket.playerBoard.collectAsState()
     val gameEndedJson by roomSocket.gameEnded.collectAsState()
 
-    // 🔹 On copie dans une variable locale non déléguée
+    // Copie locale pour permettre le smart cast
     val endState = gameEndedJson
 
     // 🔹 Si la partie est terminée → on affiche l’écran de fin
@@ -54,6 +55,7 @@ fun MultiGameScreen(
     val board = playerBoardJson?.optJSONObject("board")
     val commandsArray = board?.optJSONArray("commands")
     val commandsCount = commandsArray?.length() ?: 0
+    val highlightedCommandId = instruction?.optString("command_id")
 
     Surface(
         modifier = Modifier.fillMaxSize()
@@ -114,7 +116,7 @@ fun MultiGameScreen(
                         val timeout = instr.optLong("timeout", 0L)
 
                         Text(
-                            text = "Instruction :",
+                            text = "Instruction actuelle :",
                             style = MaterialTheme.typography.titleMedium
                         )
                         Spacer(modifier = Modifier.height(4.dp))
@@ -133,25 +135,24 @@ fun MultiGameScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Liste des commandes (nom + type)
+                    // Liste des commandes interactives
                     if (commandsArray != null && commandsCount > 0) {
                         Text(
-                            text = "Commandes disponibles ($commandsCount) :",
+                            text = "Commandes disponibles :",
                             style = MaterialTheme.typography.titleMedium
                         )
                         Spacer(modifier = Modifier.height(8.dp))
 
                         for (i in 0 until commandsCount) {
                             val cmd: JSONObject = commandsArray.getJSONObject(i)
-                            val name = cmd.optString("name", "Commande")
-                            val type = cmd.optString("type", "?")
-                            val styleType = cmd.optString("styleType", "?")
-
-                            Text(
-                                text = "• $name ($type / $styleType)",
-                                style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Left
+                            CommandRow(
+                                command = cmd,
+                                isHighlighted = (cmd.optString("id") == highlightedCommandId),
+                                onExecuteAction = { commandId, action ->
+                                    roomSocket.sendExecuteAction(commandId, action)
+                                }
                             )
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
                     } else {
                         Text(
@@ -165,9 +166,132 @@ fun MultiGameScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Button(onClick = onLeave) {
-                    Text("Quitter la partie pour moi")
+                    Text("Quitter la partie et revenir à l'accueil")
                 }
             }
         }
+    }
+}
+
+/**
+ * Affiche une commande + les boutons d’actions possibles.
+ * Pour les sliders, on affiche une série de boutons (1,2,3…).
+ * Pour les toggles, un bouton unique "Exécuter".
+ */
+@Composable
+private fun CommandRow(
+    command: JSONObject,
+    isHighlighted: Boolean,
+    onExecuteAction: (commandId: String, action: String) -> Unit
+) {
+    val id = command.optString("id", "")
+    val name = command.optString("name", "Commande")
+    val type = command.optString("type", "?")
+    val styleType = command.optString("styleType", "?")
+    val actualStatus = command.optString("actual_status", "?")
+
+    val actionsArray = command.optJSONArray("action_possible")
+    val actions = mutableListOf<String>()
+    if (actionsArray != null) {
+        for (i in 0 until actionsArray.length()) {
+            actions.add(actionsArray.getString(i))
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        val titlePrefix = if (isHighlighted) ">>> " else ""
+
+        Text(
+            text = titlePrefix + name,
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        Text(
+            text = "Type: $type [$styleType] – État: $actualStatus",
+            style = MaterialTheme.typography.bodySmall
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        if (actions.isEmpty()) {
+            Text(
+                text = "Aucune action possible 🤔",
+                style = MaterialTheme.typography.bodySmall
+            )
+            return
+        }
+
+        when (type) {
+            "slider" -> {
+                // On affiche un bouton par valeur possible (1,2,3…)
+                Text(
+                    text = "Choisis une valeur :",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+
+                FlowRowButtons(
+                    actions = actions,
+                    onClick = { action ->
+                        onExecuteAction(id, action)
+                    }
+                )
+            }
+
+            "toggle" -> {
+                // En général un seul "toggle" dans actions
+                val actionLabel = actions.firstOrNull() ?: "toggle"
+                Button(onClick = { onExecuteAction(id, actionLabel) }) {
+                    Text("Exécuter : $actionLabel")
+                }
+            }
+
+            else -> {
+                // Fallback générique : un bouton par action possible
+                Text(
+                    text = "Actions possibles :",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+
+                FlowRowButtons(
+                    actions = actions,
+                    onClick = { action ->
+                        onExecuteAction(id, action)
+                    }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Affiche une ligne (ou plusieurs lignes) de boutons pour les valeurs possibles.
+ * On reste très simple : pas de vraie "flow layout", juste une colonne de lignes.
+ */
+@Composable
+private fun FlowRowButtons(
+    actions: List<String>,
+    onClick: (String) -> Unit
+) {
+    // On coupe en groupes de 4 pour éviter une ligne infinie
+    val chunkSize = 4
+    actions.chunked(chunkSize).forEach { chunk ->
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            chunk.forEach { action ->
+                Button(
+                    onClick = { onClick(action) },
+                    modifier = Modifier.weight(1f, fill = false)
+                ) {
+                    Text(action)
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
     }
 }
