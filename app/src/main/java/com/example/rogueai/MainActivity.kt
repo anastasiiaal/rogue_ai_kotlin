@@ -52,11 +52,12 @@ class MainActivity : ComponentActivity() {
                     }
 
                     // 🔹 2) Mode multi : partie en cours
+                    // 2) Mode multi : partie en cours
                     inMultiGame && lobbyRoomCode != null -> {
                         MultiGameScreen(
                             roomCode = lobbyRoomCode!!,
+                            roomSocket = sharedSocket,
                             onLeave = {
-                                // On ferme la connexion WebSocket et on reset l'état
                                 sharedSocket.resetAfterGameEnd()
                                 sharedSocket.closeRoomConnection()
                                 inMultiGame = false
