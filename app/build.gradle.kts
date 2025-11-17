@@ -62,4 +62,5 @@ dependencies {
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 }
