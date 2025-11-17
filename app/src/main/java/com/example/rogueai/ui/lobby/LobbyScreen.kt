@@ -18,14 +18,11 @@ fun LobbyScreen(
 ) {
     val players by viewModel.players.collectAsState()
     val gameStarted by viewModel.gameStarted.collectAsState()
-
-    var ready by remember { mutableStateOf(false) }
     val gameState by viewModel.gameState.collectAsState()
 
-    Text(text = "État du jeu : $gameState")
+    var ready by remember { mutableStateOf(false) }
 
-
-    // Navigation automatique si le backend envoie un vrai "start"
+    // Navigation automatique si le backend envoie "timer_before_start" / "game_start"
     LaunchedEffect(gameStarted) {
         if (gameStarted) {
             onNavigateToGame()
@@ -54,6 +51,13 @@ fun LobbyScreen(
                 style = MaterialTheme.typography.bodyMedium
             )
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "État du jeu (backend) : $gameState",
+                style = MaterialTheme.typography.bodySmall
+            )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             if (players.isEmpty()) {
@@ -61,8 +65,8 @@ fun LobbyScreen(
             } else {
                 players.forEach { player ->
                     Text(
-                        text = "• ${player.optString("display_name", "Joueur")} " +
-                                "(ready: ${player.optBoolean("is_ready")})"
+                        text = "• ${player.optString("name", "Joueur")} " +
+                                "(ready: ${player.optBoolean("ready")})"
                     )
                 }
             }
@@ -78,21 +82,9 @@ fun LobbyScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 🔹 Bouton temporaire pour forcer le démarrage côté client
-            Button(
-                onClick = {
-                    onNavigateToGame()
-                }
-            ) {
-                Text("Lancer la partie (debug)")
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
             Button(onClick = onLeave) {
                 Text("Quitter la room")
             }
         }
     }
 }
-
