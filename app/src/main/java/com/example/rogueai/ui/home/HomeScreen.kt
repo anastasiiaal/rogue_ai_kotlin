@@ -32,7 +32,8 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     modifier: Modifier = Modifier,
     roomsApi: RoomsApi,
-    onRoomCreated: (String) -> Unit,
+    onSoloRoomCreated: (String) -> Unit,
+    onMultiRoomCreated: (String) -> Unit,
     onRoomJoined: (String) -> Unit
 ) {
     var isLoadingCreate by remember { mutableStateOf(false) }
@@ -86,7 +87,7 @@ fun HomeScreen(
                                 gameType = "toggle",
                                 soloGame = true
                             )
-                            onRoomCreated(response.roomCode)
+                            onSoloRoomCreated(response.roomCode)
                         } catch (t: Throwable) {
                             errorMessage = t.message ?: "Erreur inconnue lors de la création de la room solo"
                         } finally {
@@ -123,7 +124,7 @@ fun HomeScreen(
                                 gameType = "toggle",
                                 soloGame = false
                             )
-                            onRoomCreated(response.roomCode)
+                            onMultiRoomCreated(response.roomCode)
                         } catch (t: Throwable) {
                             errorMessage = t.message ?: "Erreur inconnue lors de la création de la room multi"
                         } finally {
