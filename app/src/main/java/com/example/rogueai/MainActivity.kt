@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
 
                 // Room solo en cours (mode test local)
                 var soloRoomCode by remember { mutableStateOf<String?>(null) }
+                var inSoloGame by remember { mutableStateOf(false) }
 
                 // Room multi / join
                 var lobbyRoomCode by remember { mutableStateOf<String?>(null) }
@@ -42,10 +43,14 @@ class MainActivity : ComponentActivity() {
 
                 when {
                     // 🔹 1) Mode solo : écran local de test
-                    soloRoomCode != null -> {
+                    soloRoomCode != null && inSoloGame -> {
                         SoloGameScreen(
                             roomCode = soloRoomCode!!,
-                            onExit = {
+                            roomSocket = sharedSocket,
+                            onLeave = {
+                                sharedSocket.resetAfterGameEnd()
+                                sharedSocket.closeRoomConnection()
+                                inSoloGame = false
                                 soloRoomCode = null
                             }
                         )
@@ -96,12 +101,15 @@ class MainActivity : ComponentActivity() {
                             roomsApi = roomsApi,
                             onSoloRoomCreated = { code ->
                                 soloRoomCode = code
+                                inSoloGame = true
                             },
                             onMultiRoomCreated = { code ->
                                 lobbyRoomCode = code
+                                inMultiGame = false
                             },
                             onRoomJoined = { code ->
                                 lobbyRoomCode = code
+                                inMultiGame = false
                             }
                         )
                     }
