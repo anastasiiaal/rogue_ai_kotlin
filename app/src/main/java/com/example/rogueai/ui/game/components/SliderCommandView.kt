@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 /**
  * Commande de type "slider".
@@ -61,54 +62,59 @@ fun SliderCommandView(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // 🔹 1) On prépare la liste complète à afficher :
-        //    union(action_possible, actual_status), sans doublons, triée numériquement.
+        // Liste stable des valeurs à afficher
         val allValues = (actions + actualStatus)
             .filter { it.isNotBlank() }
             .distinct()
             .sortedBy { it.toIntOrNull() ?: 0 }
 
-        // 🔹 2) Pour savoir quelles valeurs sont vraiment activables côté backend
         val clickableSet = actions.toSet()
+        val chunkSize = 2
 
-        val chunkSize = 4
         allValues.chunked(chunkSize).forEach { chunk ->
             Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 chunk.forEach { value ->
                     val isSelected = value == actualStatus
                     val isClickable = clickableSet.contains(value)
 
+                    val baseModifier = Modifier
+                        .weight(1f, fill = true)
+                        .height(44.dp) // un peu plus haut pour du confort
+
                     when {
-                        // Bouton de la valeur actuelle (non cliquable)
+                        // Valeur actuelle : bouton plein, désactivé
                         isSelected -> {
                             Button(
-                                onClick = { /* rien, déjà sélectionné */ },
+                                onClick = { /* rien */ },
                                 enabled = false,
-                                modifier = Modifier.weight(1f, fill = true)
+                                shape = RoundedCornerShape(4.dp),
+                                modifier = baseModifier
                             ) {
                                 Text(value)
                             }
                         }
 
-                        // Valeur possible selon le backend → bouton cliquable
+                        // Valeur cliquable
                         isClickable -> {
                             OutlinedButton(
                                 onClick = { onExecuteAction(commandId, value) },
-                                modifier = Modifier.weight(1f, fill = true)
+                                shape = RoundedCornerShape(4.dp),
+                                modifier = baseModifier
                             ) {
                                 Text(value)
                             }
                         }
 
-                        // Valeur affichée mais non cliquable (par sécurité)
+                        // Valeur affichée mais non cliquable (sécurité)
                         else -> {
                             OutlinedButton(
                                 onClick = { /* non autorisé */ },
                                 enabled = false,
-                                modifier = Modifier.weight(1f, fill = true)
+                                shape = RoundedCornerShape(4.dp),
+                                modifier = baseModifier
                             ) {
                                 Text(value)
                             }
@@ -120,3 +126,4 @@ fun SliderCommandView(
         }
     }
 }
+
