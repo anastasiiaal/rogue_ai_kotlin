@@ -9,8 +9,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rogueai.data.LobbyRepository
 import com.example.rogueai.network.RoomSocket
 import com.example.rogueai.network.RoomsApi
-import com.example.rogueai.ui.game.MultiGameScreen
-import com.example.rogueai.ui.game.SoloGameScreen
+import com.example.rogueai.ui.game.GameScreen
 import com.example.rogueai.ui.home.HomeScreen
 import com.example.rogueai.ui.lobby.LobbyScreen
 import com.example.rogueai.ui.lobby.LobbyViewModel
@@ -42,11 +41,12 @@ class MainActivity : ComponentActivity() {
                 var inMultiGame by remember { mutableStateOf(false) }
 
                 when {
-                    // 🔹 1) Mode solo : écran local de test
+                    // 🔹 SOLO GAME
                     soloRoomCode != null && inSoloGame -> {
-                        SoloGameScreen(
+                        GameScreen(
                             roomCode = soloRoomCode!!,
                             roomSocket = sharedSocket,
+                            isSolo = true,
                             onLeave = {
                                 sharedSocket.resetAfterGameEnd()
                                 sharedSocket.closeRoomConnection()
@@ -56,12 +56,12 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // 🔹 2) Mode multi : partie en cours
-                    // 2) Mode multi : partie en cours
-                    inMultiGame && lobbyRoomCode != null -> {
-                        MultiGameScreen(
+                    // 🔹 MULTI : en partie
+                    lobbyRoomCode != null && inMultiGame -> {
+                        GameScreen(
                             roomCode = lobbyRoomCode!!,
                             roomSocket = sharedSocket,
+                            isSolo = false,
                             onLeave = {
                                 sharedSocket.resetAfterGameEnd()
                                 sharedSocket.closeRoomConnection()
@@ -71,9 +71,8 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // 🔹 3) Mode multi : lobby en attente
+                    // 🔹 MULTI : lobby
                     lobbyRoomCode != null -> {
-
                         val lobbyVm: LobbyViewModel = viewModel(
                             key = "lobby-${lobbyRoomCode!!}",
                             factory = LobbyViewModelFactory(
@@ -95,7 +94,6 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // 🔹 4) Sinon : écran d’accueil
                     else -> {
                         HomeScreen(
                             roomsApi = roomsApi,
