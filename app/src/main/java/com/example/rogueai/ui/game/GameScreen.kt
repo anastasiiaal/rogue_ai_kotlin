@@ -1,27 +1,27 @@
 package com.example.rogueai.ui.game
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.Button
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rogueai.network.RoomSocket
 import com.example.rogueai.ui.game.components.SliderCommandView
 import com.example.rogueai.ui.game.components.ToggleCommandView
 import org.json.JSONObject
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 
 /**
  * Écran de jeu principal, utilisé à la fois pour le mode solo et le mode multi.
@@ -89,15 +89,32 @@ fun GameScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())   // tout l’écran est scrollable
                 .padding(16.dp)
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Header
-            Text(
-                text = if (isSolo) "Rogue AI – Partie solo" else "Rogue AI – Partie multijoueur",
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    onClick = {
+                        gameVm.leaveGame()
+                        onLeave()
+                    }
+                ) {
+                    Text("↩️ Accueil", style = MaterialTheme.typography.titleMedium)
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Text(
+                    text = if (isSolo) "Rogue AI – Solo" else "Rogue AI – Multi",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -109,11 +126,11 @@ fun GameScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                text = "État du jeu (backend) : $gameState",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
+//            Text(
+//                text = "État du jeu (backend) : $gameState",
+//                style = MaterialTheme.typography.bodySmall,
+//                modifier = Modifier.align(Alignment.CenterHorizontally)
+//            )
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -148,24 +165,25 @@ fun GameScreen(
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = instrText,
-                        style = MaterialTheme.typography.bodyMedium,
+                        // 🔹 plus gros pour être bien visible
+                        style = MaterialTheme.typography.headlineSmall,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Type : $commandType – Attendu : $expectedStatus – Timeout : ${timeout}ms",
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+//                    Spacer(modifier = Modifier.height(6.dp))
+//                    Text(
+//                        text = "Type : $commandType – Attendu : $expectedStatus – Timeout : ${timeout}ms",
+//                        style = MaterialTheme.typography.bodySmall,
+//                        textAlign = TextAlign.Center,
+//                        modifier = Modifier.align(Alignment.CenterHorizontally)
+//                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Grille de commandes (2 colonnes)
             if (commands.isNotEmpty()) {
@@ -176,16 +194,13 @@ fun GameScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f, fill = true),
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 8.dp)
+                    maxItemsInEachRow = 2
                 ) {
-                    items(commands) { cmd ->
+                    commands.forEach { cmd ->
                         val id = cmd.optString("id", "")
                         val name = cmd.optString("name", "Commande")
                         val type = cmd.optString("type", "?")
@@ -212,7 +227,9 @@ fun GameScreen(
                             isHighlighted = isHighlighted,
                             onExecuteAction = { commandId, action ->
                                 gameVm.executeAction(commandId, action)
-                            }
+                            },
+                            modifier = Modifier
+                                .weight(1f, fill = true)   // 2 cards par row
                         )
                     }
                 }
@@ -227,17 +244,7 @@ fun GameScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = {
-                    gameVm.leaveGame()
-                    onLeave()
-                },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                Text("Quitter la partie et revenir à l'accueil")
-            }
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -251,18 +258,17 @@ private fun CommandCard(
     actualStatus: String,
     actions: List<String>,
     isHighlighted: Boolean,
-    onExecuteAction: (commandId: String, action: String) -> Unit
+    onExecuteAction: (commandId: String, action: String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Surface(
         shape = RoundedCornerShape(12.dp),
         tonalElevation = 2.dp,
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .wrapContentHeight()
     ) {
         Column(
-            modifier = Modifier
-                .padding(12.dp)
+            modifier = Modifier.padding(12.dp)
         ) {
             when (type) {
                 "slider" -> {
