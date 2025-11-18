@@ -84,7 +84,6 @@ fun HomeScreen(
                     scope.launch {
                         try {
                             val response = roomsApi.createRoom(
-                                gameType = "toggle",
                                 soloGame = true
                             )
                             onSoloRoomCreated(response.roomCode)
@@ -121,7 +120,6 @@ fun HomeScreen(
                     scope.launch {
                         try {
                             val response = roomsApi.createRoom(
-                                gameType = "toggle",
                                 soloGame = false
                             )
                             onMultiRoomCreated(response.roomCode)

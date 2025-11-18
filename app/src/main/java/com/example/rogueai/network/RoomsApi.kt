@@ -19,11 +19,9 @@ class RoomsApi(
     private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
     suspend fun createRoom(
-        gameType: String,
         soloGame: Boolean
     ): CreateRoomResponse = withContext(Dispatchers.IO) {
         val bodyJson = JSONObject().apply {
-            put("gameType", gameType)
             put("soloGame", soloGame)
         }
 
