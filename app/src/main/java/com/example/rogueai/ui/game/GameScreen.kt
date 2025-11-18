@@ -21,6 +21,7 @@ import com.example.rogueai.network.RoomSocket
 import com.example.rogueai.ui.game.components.SliderCommandView
 import com.example.rogueai.ui.game.components.ToggleCommandView
 import org.json.JSONObject
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 /**
  * Écran de jeu principal, utilisé à la fois pour le mode solo et le mode multi.
@@ -35,21 +36,21 @@ fun GameScreen(
     isSolo: Boolean,
     onLeave: () -> Unit
 ) {
-    // 🔹 Mode solo : on ouvre la connexion & on se met prêt automatiquement
-    LaunchedEffect(roomCode, isSolo) {
-        if (isSolo) {
-            roomSocket.openRoomConnection(roomCode)
-            roomSocket.sendReadyFlag(true)
-        }
-    }
+    val gameVm: GameViewModel = viewModel(
+        key = "game-$roomCode-$isSolo",
+        factory = GameViewModelFactory(
+            socket = roomSocket,
+            roomCode = roomCode,
+            isSolo = isSolo
+        )
+    )
 
-    val gameState by roomSocket.gameState.collectAsState()
-    val playerBoardJson by roomSocket.playerBoard.collectAsState()
-    val gameEndedJson by roomSocket.gameEnded.collectAsState()
+    val gameState by gameVm.gameState.collectAsState()
+    val playerBoardJson by gameVm.playerBoard.collectAsState()
+    val gameEndedJson by gameVm.gameEnded.collectAsState()
 
     val endState = gameEndedJson
 
-    // 🔹 Partie terminée : écran de fin
     if (endState != null) {
         val win = endState.optBoolean("win", false)
         val tryHistoryArray = endState.optJSONArray("tryHistory")
@@ -58,7 +59,10 @@ fun GameScreen(
         GameOverScreen(
             win = win,
             tryCount = tryCount,
-            onBackToHome = onLeave
+            onBackToHome = {
+                gameVm.leaveGame()
+                onLeave()
+            }
         )
         return
     }
@@ -207,7 +211,7 @@ fun GameScreen(
                             actions = actions,
                             isHighlighted = isHighlighted,
                             onExecuteAction = { commandId, action ->
-                                roomSocket.sendExecuteAction(commandId, action)
+                                gameVm.executeAction(commandId, action)
                             }
                         )
                     }
@@ -226,7 +230,10 @@ fun GameScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
-                onClick = onLeave,
+                onClick = {
+                    gameVm.leaveGame()
+                    onLeave()
+                },
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
                 Text("Quitter la partie et revenir à l'accueil")
