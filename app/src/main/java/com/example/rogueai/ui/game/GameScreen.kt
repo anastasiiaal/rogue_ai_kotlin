@@ -111,7 +111,7 @@ fun GameScreen(
                 Spacer(modifier = Modifier.weight(1f))
 
                 Text(
-                    text = if (isSolo) "Rogue AI – Solo" else "Rogue AI – Multi",
+                    text = "$roomCode " + if (isSolo) "\uD83D\uDC64" else "\uD83D\uDC65",
                     style = MaterialTheme.typography.titleMedium,
                 )
             }
