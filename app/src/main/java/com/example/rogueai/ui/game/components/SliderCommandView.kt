@@ -32,7 +32,7 @@ fun SliderCommandView(
     isHighlighted: Boolean,
     onExecuteAction: (commandId: String, action: String) -> Unit
 ) {
-    val titlePrefix = if (isHighlighted) ">>> " else ""
+    val titlePrefix = if (isHighlighted) "👀 " else ""
 
     Column {
         Text(
