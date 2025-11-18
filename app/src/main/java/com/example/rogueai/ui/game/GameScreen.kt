@@ -118,11 +118,11 @@ fun GameScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = "Room : $roomCode",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
+//            Text(
+//                text = "Room : $roomCode",
+//                style = MaterialTheme.typography.bodyMedium,
+//                modifier = Modifier.align(Alignment.CenterHorizontally)
+//            )
 
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -160,11 +160,11 @@ fun GameScreen(
                     val commandType = instr.optString("command_type", "")
                     val timeout = instr.optLong("timeout", 0L)
 
-                    Text(
-                        text = "Instruction actuelle :",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+//                    Text(
+//                        text = "Instruction actuelle :",
+//                        style = MaterialTheme.typography.titleMedium,
+//                        modifier = Modifier.align(Alignment.CenterHorizontally)
+//                    )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = instrText,

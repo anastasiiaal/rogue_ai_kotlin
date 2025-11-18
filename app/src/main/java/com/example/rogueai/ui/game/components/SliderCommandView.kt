@@ -40,10 +40,10 @@ fun SliderCommandView(
             style = MaterialTheme.typography.bodyMedium
         )
 
-        Text(
-            text = "Type: slider – Valeur actuelle: $actualStatus",
-            style = MaterialTheme.typography.bodySmall
-        )
+//        Text(
+//            text = "Type: slider – Valeur actuelle: $actualStatus",
+//            style = MaterialTheme.typography.bodySmall
+//        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -55,10 +55,10 @@ fun SliderCommandView(
             return
         }
 
-        Text(
-            text = "Choisis une valeur :",
-            style = MaterialTheme.typography.bodySmall
-        )
+//        Text(
+//            text = "Choisis une valeur :",
+//            style = MaterialTheme.typography.bodySmall
+//        )
 
         Spacer(modifier = Modifier.height(4.dp))
 

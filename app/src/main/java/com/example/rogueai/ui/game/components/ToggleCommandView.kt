@@ -72,10 +72,10 @@ fun ToggleCommandView(
             style = MaterialTheme.typography.bodyMedium
         )
 
-        Text(
-            text = "Type: toggle [$styleType] – État: $actualStatus",
-            style = MaterialTheme.typography.bodySmall
-        )
+//        Text(
+//            text = "Type: toggle [$styleType] – État: $actualStatus",
+//            style = MaterialTheme.typography.bodySmall
+//        )
 
         if (actions.isEmpty()) {
             Text(
