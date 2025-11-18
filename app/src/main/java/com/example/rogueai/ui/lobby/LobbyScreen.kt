@@ -46,21 +46,20 @@ fun LobbyScreen(
             Text("Lobby Rogue AI", style = MaterialTheme.typography.headlineMedium)
             Spacer(Modifier.height(8.dp))
 
-            Text("Code de la room (client) : $roomCode")
+            Text("Code : $roomCode")
             Spacer(Modifier.height(4.dp))
 
-            Text("État du jeu (backend) : $gameState")
-            Spacer(Modifier.height(4.dp))
-
-            Text("Joueurs vus : ${players.size}")
+            Text("Joueurs connectés : ${players.size}")
             Spacer(Modifier.height(8.dp))
 
             if (players.isEmpty()) {
                 Text("Aucun joueur (selon backend)")
             } else {
                 players.forEach { player ->
+                    val isReady = player.optBoolean("ready")
+
                     Text(
-                        text = "• ${player.optString("name", "Joueur")} (ready: ${player.optBoolean("ready")})",
+                        text = "${player.optString("name", "Joueur")} ${if (isReady) "✅" else "❌"}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -72,7 +71,7 @@ fun LobbyScreen(
                 ready = !ready
                 viewModel.setReady(ready)
             }) {
-                Text(if (ready) "Annuler Ready" else "Je suis prêt")
+                Text(if (ready) "Annuler Ready" else "Let's GO !!")
             }
 
             Spacer(Modifier.height(12.dp))
@@ -82,24 +81,6 @@ fun LobbyScreen(
             }
 
             Spacer(Modifier.height(24.dp))
-
-            // DEBUG: room_info brut tronqué
-            roomInfo?.let { info ->
-                Text(
-                    text = "room_info:\n" + info.toString(2).take(220) + if (info.toString().length > 220) "..." else "",
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            // DEBUG: dernier message WS brut
-            lastRawMessage?.let { raw ->
-                Text(
-                    text = "Dernier WS:\n" + raw.take(220) + if (raw.length > 220) "..." else "",
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
         }
     }
 }

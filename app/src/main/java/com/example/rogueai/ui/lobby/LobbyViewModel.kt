@@ -16,7 +16,7 @@ class LobbyViewModel(
     val playerBoard = repo.observePlayerBoard()
     val lastRawMessage = repo.observeLastRawMessage()
 
-    // 🔹 On n’appelle PLUS connect() dans init -> on le fera depuis l’UI
+    // On n’appelle PLUS connect() dans init -> on le fera depuis l’UI
     fun connect() {
         repo.connect(roomCode)
     }
