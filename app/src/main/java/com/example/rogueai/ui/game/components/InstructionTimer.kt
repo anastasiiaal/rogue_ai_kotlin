@@ -1,0 +1,54 @@
+package com.example.rogueai.ui.game.components
+
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import com.example.rogueai.ui.theme.RoguePalette
+import kotlinx.coroutines.delay
+import java.util.Locale
+
+@Composable
+fun InstructionTimer(
+    durationMs: Long?,
+    instructionKey: String,
+    modifier: Modifier = Modifier
+) {
+    if (durationMs == null || durationMs <= 0L) return
+
+    var timeLeft by remember(instructionKey) { mutableLongStateOf(durationMs) }
+
+    LaunchedEffect(instructionKey) {
+        val startTime = System.currentTimeMillis()
+        val endTime = startTime + durationMs
+
+        while (timeLeft > 0) {
+            val currentTime = System.currentTimeMillis()
+            timeLeft = (endTime - currentTime).coerceAtLeast(0L)
+            delay(16)
+        }
+    }
+
+    val seconds = timeLeft / 1000
+    val millis = timeLeft % 1000
+    val formattedTime = String.format(Locale.US, "%d.%03d", seconds, millis)
+
+    // --- COULEUR LOGIQUE ---
+    // On récupère la couleur de texte actuelle de l'interface (Default)
+    val defaultColor = LocalContentColor.current
+    // On passe au rouge seulement si < 3000ms
+    val timerColor = if (timeLeft < 3000) RoguePalette.ThreatRed else defaultColor
+
+    Text(
+        text = formattedTime,
+        style = MaterialTheme.typography.titleLarge.copy( // Taille plus sobre (titleLarge au lieu de display)
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold
+        ),
+        color = timerColor,
+        modifier = modifier
+    )
+}

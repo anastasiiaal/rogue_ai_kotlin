@@ -20,6 +20,9 @@ import com.example.rogueai.ui.game.components.CommandCard
 import org.json.JSONObject
 import androidx.compose.foundation.layout.FlowRow
 import com.example.rogueai.ui.game.components.ThreatBar
+import com.example.rogueai.ui.game.components.InstructionTimer
+import android.util.Log
+import androidx.compose.runtime.LaunchedEffect
 
 /**
  * Écran de jeu principal, utilisé à la fois pour le mode solo et le mode multi.
@@ -46,7 +49,11 @@ fun GameScreen(
     val gameState by gameVm.gameState.collectAsState()
     val playerBoardJson by gameVm.playerBoard.collectAsState()
     val gameEndedJson by gameVm.gameEnded.collectAsState()
-
+    LaunchedEffect(playerBoardJson) {
+        playerBoardJson?.let {
+            Log.d("ROGUELOG", "Board Reçu : ${it.toString(2)}") // le '2' c'est pour l'indentation
+        }
+    }
     val endState = gameEndedJson
 
     if (endState != null) {
@@ -142,10 +149,35 @@ fun GameScreen(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             } else {
+                // Barre de menace
                 ThreatBar(threatLevel = threat)
+
+//                Text(
+//                    text = playerBoardJson?.toString() ?: "Pas de données",
+//                    style = MaterialTheme.typography.bodySmall,
+//                    modifier = Modifier.heightIn(max = 100.dp).verticalScroll(rememberScrollState())
+//                )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // Timeout of the instruction
+                instruction?.let { instr ->
+                    val timeout = instr.optLong("timeout", 0L)
+                    val instrText = instr.optString("instruction_text", "")
+
+                    // On utilise instrText comme clé : si le texte change, le timer reset !
+                    if (timeout > 0L) {
+                        InstructionTimer(
+                            durationMs = timeout,
+                            instructionKey = instrText,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Texte de l’instruction
                 instruction?.let { instr ->
                     val instrText = instr.optString("instruction_text", "Instruction inconnue")
                     val expectedStatus = instr.optString("expected_status", "")
