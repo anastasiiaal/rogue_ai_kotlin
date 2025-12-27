@@ -20,8 +20,8 @@ import com.example.rogueai.network.RoomSocket
 import com.example.rogueai.ui.game.components.SliderCommandView
 import com.example.rogueai.ui.game.components.ToggleCommandView
 import org.json.JSONObject
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import com.example.rogueai.ui.game.components.ThreatBar
 
 /**
  * Écran de jeu principal, utilisé à la fois pour le mode solo et le mode multi.
@@ -144,13 +144,7 @@ fun GameScreen(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             } else {
-                threat?.let {
-                    Text(
-                        text = "Menace actuelle : $it / 100",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                }
+                ThreatBar(threatLevel = threat)
 
                 Spacer(modifier = Modifier.height(8.dp))
 

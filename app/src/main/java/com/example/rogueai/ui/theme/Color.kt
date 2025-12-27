@@ -23,4 +23,11 @@ object RoguePalette {
 
     val ButtonJoinBlue = Color(0xFF64B5F6)
     val ButtonJoinText = Color(0xFF0D1B2A)
+
+    // Couleurs pour la menace
+    val ThreatVibrantGreen = Color(0xFF00FF00)
+    val ThreatLightGreen = Color(0xFF90EE90)
+    val ThreatYellow = Color(0xFFFFEB3B)
+    val ThreatOrange = Color(0xFFFFA500)
+    val ThreatRed = Color(0xFFF44336)
 }
