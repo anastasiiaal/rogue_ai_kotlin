@@ -1,7 +1,6 @@
 package com.example.rogueai.ui.game
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
@@ -17,8 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rogueai.network.RoomSocket
-import com.example.rogueai.ui.game.components.SliderCommandView
-import com.example.rogueai.ui.game.components.ToggleCommandView
+import com.example.rogueai.ui.game.components.CommandCard
 import org.json.JSONObject
 import androidx.compose.foundation.layout.FlowRow
 import com.example.rogueai.ui.game.components.ThreatBar
@@ -239,67 +237,6 @@ fun GameScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-        }
-    }
-}
-
-@Composable
-private fun CommandCard(
-    type: String,
-    styleType: String,
-    id: String,
-    name: String,
-    actualStatus: String,
-    actions: List<String>,
-    isHighlighted: Boolean,
-    onExecuteAction: (commandId: String, action: String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        tonalElevation = 2.dp,
-        modifier = modifier
-            .wrapContentHeight()
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            when (type) {
-                "slider" -> {
-                    SliderCommandView(
-                        commandId = id,
-                        name = name,
-                        actualStatus = actualStatus,
-                        actions = actions,
-                        isHighlighted = isHighlighted,
-                        onExecuteAction = onExecuteAction
-                    )
-                }
-
-                "toggle" -> {
-                    ToggleCommandView(
-                        commandId = id,
-                        name = name,
-                        styleType = styleType,
-                        actualStatus = actualStatus,
-                        actions = actions,
-                        isHighlighted = isHighlighted,
-                        onExecuteAction = onExecuteAction
-                    )
-                }
-
-                else -> {
-                    ToggleCommandView(
-                        commandId = id,
-                        name = "$name (type: $type)",
-                        styleType = styleType,
-                        actualStatus = actualStatus,
-                        actions = actions,
-                        isHighlighted = isHighlighted,
-                        onExecuteAction = onExecuteAction
-                    )
-                }
-            }
         }
     }
 }
