@@ -1,4 +1,4 @@
-package com.example.rogueai.ui.theme
+ package com.example.rogueai.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
