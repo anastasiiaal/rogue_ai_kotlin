@@ -49,29 +49,39 @@ class RoomSocket {
     // ----------------------------------------------------------------
 
     fun openRoomConnection(roomCode: String) {
-        currentRoomCode = roomCode
+        val normalized = roomCode.trim().uppercase()
 
-        val request = Request.Builder()
-            .url("wss://backend.rogueai.surpuissant.io/?room=$roomCode")
-            .build()
+        // Si un socket existe, on le ferme proprement pour éviter les doubles listeners
+        if (webSocket != null) {
+            println("WS: closing previous socket before reconnect")
+            webSocket?.close(1000, "Reconnect")
+            webSocket = null
+        }
 
-        println("WS: trying to connect to ${request.url}")
+        currentRoomCode = normalized
 
-        webSocket = client.newWebSocket(request, socketListener)
-
-        // reset de l’état local
+        // reset AVANT d’ouvrir la connexion
         _gameState.value = "unknown"
         _gameStarted.value = false
         _gameEnded.value = null
         _playerBoard.value = null
         _roomInfo.value = null
         _players.value = emptyList()
+        _lastRawMessage.value = null
+
+        val request = Request.Builder()
+            .url("wss://backend.rogueai.surpuissant.io/?room=$normalized")
+            .build()
+
+        println("WS: trying to connect to ${request.url}")
+        webSocket = client.newWebSocket(request, socketListener)
     }
 
     fun closeRoomConnection() {
         println("WS: closing socket for room $currentRoomCode")
         webSocket?.close(1000, "Leaving room")
         webSocket = null
+        currentRoomCode = null
     }
 
     fun resetAfterGameEnd() {
@@ -115,7 +125,7 @@ class RoomSocket {
 
         override fun onOpen(webSocket: WebSocket, response: Response) {
             println("WS OPENED for room $currentRoomCode (code=${response.code})")
-            _gameState.value = "opened"  // 👈 DEBUG : juste pour voir que la connexion est OK
+            _gameState.value = "opened"  // DEBUG pour voir que la connexion est OK
         }
 
         override fun onMessage(webSocket: WebSocket, text: String) {
@@ -164,7 +174,7 @@ class RoomSocket {
                     }
 
                     "player_board" -> {
-                        _playerBoard.value = payload   // 👈 Maintenant ce champ existe, donc plus d’erreur
+                        _playerBoard.value = payload
                     }
 
                     else -> {

@@ -16,6 +16,9 @@ class GameViewModel(
     val playerBoard: StateFlow<JSONObject?> = socket.playerBoard
     val gameEnded: StateFlow<JSONObject?> = socket.gameEnded
 
+    // for DEBUG dernier message WS brut data
+    val lastRawMessage: StateFlow<String?> = socket.lastRawMessage
+
     init {
         if (isSolo) {
             socket.openRoomConnection(roomCode)

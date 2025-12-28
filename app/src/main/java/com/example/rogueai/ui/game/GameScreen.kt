@@ -23,6 +23,9 @@ import com.example.rogueai.ui.game.components.ThreatBar
 import com.example.rogueai.ui.game.components.InstructionTimer
 import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 
 /**
  * Écran de jeu principal, utilisé à la fois pour le mode solo et le mode multi.
@@ -46,7 +49,9 @@ fun GameScreen(
         )
     )
 
-    val gameState by gameVm.gameState.collectAsState()
+    // DEBUG game state data
+    // val gameState by gameVm.gameState.collectAsState()
+
     val playerBoardJson by gameVm.playerBoard.collectAsState()
     val gameEndedJson by gameVm.gameEnded.collectAsState()
     LaunchedEffect(playerBoardJson) {
@@ -78,6 +83,11 @@ fun GameScreen(
     val board = playerBoardJson?.optJSONObject("board")
     val commandsArray = board?.optJSONArray("commands")
 
+    // DEBUG : dernier message WS brut data
+//    val lastRaw by gameVm.lastRawMessage.collectAsState()
+//    val clipboard = LocalClipboardManager.current
+//    val scroll = rememberScrollState()
+
     val highlightedCommandId = instruction?.optString("command_id")
 
     val commands: List<JSONObject> = if (commandsArray != null) {
@@ -87,6 +97,10 @@ fun GameScreen(
     } else {
         emptyList()
     }
+
+    val instructionCommandId = instruction?.optString("command_id")
+    val targetedCommand = commands.firstOrNull { it.optString("id") == instructionCommandId }
+    val instructionIsForMe = targetedCommand != null
 
     Surface(
         modifier = Modifier.fillMaxSize()
@@ -123,14 +137,35 @@ fun GameScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-//            Text(
-//                text = "Room : $roomCode",
-//                style = MaterialTheme.typography.bodyMedium,
-//                modifier = Modifier.align(Alignment.CenterHorizontally)
-//            )
+            // DEBUG dernier message WS brut
+//            if (lastRaw != null) {
+//                Spacer(Modifier.height(12.dp))
+//
+//                Text("DEBUG WS (dernier message) :", style = MaterialTheme.typography.titleSmall)
+//
+//                Surface(
+//                    shape = RoundedCornerShape(12.dp),
+//                    tonalElevation = 2.dp,
+//                    modifier = Modifier.fillMaxWidth()
+//                ) {
+//                    Column(Modifier.padding(12.dp)) {
+//                        TextButton(
+//                            onClick = { clipboard.setText(AnnotatedString(lastRaw!!)) }
+//                        ) { Text("📋 Copier") }
+//
+//                        Text(
+//                            text = lastRaw!!,
+//                            style = MaterialTheme.typography.bodySmall,
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .heightIn(max = 220.dp)
+//                                .verticalScroll(scroll)
+//                        )
+//                    }
+//                }
+//            }
 
-            Spacer(modifier = Modifier.height(4.dp))
-
+            // DEBUG game state brut
 //            Text(
 //                text = "État du jeu (backend) : $gameState",
 //                style = MaterialTheme.typography.bodySmall,
@@ -180,23 +215,20 @@ fun GameScreen(
                 // Texte de l’instruction
                 instruction?.let { instr ->
                     val instrText = instr.optString("instruction_text", "Instruction inconnue")
-                    val expectedStatus = instr.optString("expected_status", "")
-                    val commandType = instr.optString("command_type", "")
-                    val timeout = instr.optLong("timeout", 0L)
 
-//                    Text(
-//                        text = "Instruction actuelle :",
-//                        style = MaterialTheme.typography.titleMedium,
-//                        modifier = Modifier.align(Alignment.CenterHorizontally)
-//                    )
+                    // DEBUG infos techniques
+//                    val expectedStatus = instr.optString("expected_status", "")
+//                    val commandType = instr.optString("command_type", "")
+//                    val timeout = instr.optLong("timeout", 0L)
+
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = instrText,
-                        // 🔹 plus gros pour être bien visible
                         style = MaterialTheme.typography.headlineSmall,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
+                    // DEBUG infos techniques
 //                    Spacer(modifier = Modifier.height(6.dp))
 //                    Text(
 //                        text = "Type : $commandType – Attendu : $expectedStatus – Timeout : ${timeout}ms",
@@ -205,6 +237,23 @@ fun GameScreen(
 //                        modifier = Modifier.align(Alignment.CenterHorizontally)
 //                    )
                 }
+
+                // DEBUG : who's instruction for
+//                if (instruction != null) {
+//                    if (!instructionIsForMe) {
+//                        Text(
+//                            text = "❌ Instruction pour l'autre joueur",
+//                            style = MaterialTheme.typography.titleMedium,
+//                            modifier = Modifier.align(Alignment.CenterHorizontally)
+//                        )
+//                    } else {
+//                        Text(
+//                            text = "✅ Instruction pour toi",
+//                            style = MaterialTheme.typography.titleMedium,
+//                            modifier = Modifier.align(Alignment.CenterHorizontally)
+//                        )
+//                    }
+//                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -250,7 +299,9 @@ fun GameScreen(
                             actions = actions,
                             isHighlighted = isHighlighted,
                             onExecuteAction = { commandId, action ->
-                                gameVm.executeAction(commandId, action)
+                                if (instructionIsForMe) {
+                                    gameVm.executeAction(commandId, action)
+                                }
                             },
                             modifier = Modifier
                                 .weight(1f, fill = true)   // 2 cards par row
