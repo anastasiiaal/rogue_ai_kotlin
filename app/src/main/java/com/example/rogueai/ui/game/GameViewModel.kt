@@ -2,56 +2,56 @@ package com.example.rogueai.ui.game
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.rogueai.network.RoomSocket
+import com.example.rogueai.data.GameRepository
 import kotlinx.coroutines.flow.StateFlow
 import org.json.JSONObject
 
 class GameViewModel(
-    private val socket: RoomSocket,
+    private val repo: GameRepository,
     private val roomCode: String,
     private val isSolo: Boolean
 ) : ViewModel() {
 
-    val gameState: StateFlow<String> = socket.gameState
-    val playerBoard: StateFlow<JSONObject?> = socket.playerBoard
-    val gameEnded: StateFlow<JSONObject?> = socket.gameEnded
+    val gameState: StateFlow<String> = repo.observeGameState()
+    val playerBoard: StateFlow<JSONObject?> = repo.observePlayerBoard()
+    val gameEnded: StateFlow<JSONObject?> = repo.observeGameEnded()
 
-    // for DEBUG dernier message WS brut data
-    val lastRawMessage: StateFlow<String?> = socket.lastRawMessage
+    // DEBUG dernier message WS brut
+    val lastRawMessage: StateFlow<String?> = repo.observeLastRawMessage()
 
     init {
+        // même logique qu'avant
         if (isSolo) {
-            socket.openRoomConnection(roomCode)
-            socket.sendReadyFlag(true)
+            repo.connect(roomCode)
+            repo.sendReady(true)
         }
     }
 
     fun executeAction(commandId: String, action: String) {
-        socket.sendExecuteAction(commandId, action)
+        repo.executeAction(commandId, action)
     }
 
     fun leaveGame() {
-        socket.resetAfterGameEnd()
+        repo.resetAfterGameEnd()
         if (isSolo) {
-            socket.closeRoomConnection()
+            repo.disconnect()
         }
     }
 
     override fun onCleared() {
         super.onCleared()
-        // On ne ferme la connexion que pour le solo : en multi c’est géré par le flux de navigation
         if (isSolo) {
-            socket.closeRoomConnection()
+            repo.disconnect()
         }
     }
 }
 
 class GameViewModelFactory(
-    private val socket: RoomSocket,
+    private val repo: GameRepository,
     private val roomCode: String,
     private val isSolo: Boolean
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return GameViewModel(socket, roomCode, isSolo) as T
+        return GameViewModel(repo, roomCode, isSolo) as T
     }
 }

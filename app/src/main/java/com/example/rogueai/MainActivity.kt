@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rogueai.data.LobbyRepository
+import com.example.rogueai.data.GameRepository
 import com.example.rogueai.network.RoomSocket
 import com.example.rogueai.network.RoomsApi
 import com.example.rogueai.ui.game.GameScreen
@@ -24,59 +25,55 @@ class MainActivity : ComponentActivity() {
         setContent {
             RogueaiTheme {
 
-                // REST client pour créer / vérifier les rooms
                 val roomsApi = remember { RoomsApi() }
-
-                // WebSocket partagé pour le mode multijoueur
                 val sharedSocket = remember { RoomSocket() }
 
-                // Room solo en cours (mode test local)
+                // ✅ repos uniques (un par socket partagé)
+                val lobbyRepo = remember { LobbyRepository(sharedSocket) }
+                val gameRepo  = remember { GameRepository(sharedSocket) }
+
                 var soloRoomCode by remember { mutableStateOf<String?>(null) }
                 var inSoloGame by remember { mutableStateOf(false) }
 
-                // Room multi / join
                 var lobbyRoomCode by remember { mutableStateOf<String?>(null) }
-
-                // Sommes-nous en phase "jeu" multi (après lobby) ?
                 var inMultiGame by remember { mutableStateOf(false) }
 
                 when {
-                    // 🔹 SOLO GAME
                     soloRoomCode != null && inSoloGame -> {
                         GameScreen(
                             roomCode = soloRoomCode!!,
-                            roomSocket = sharedSocket,
+                            // 👇 au lieu de passer socket, on passera le repo (voir note plus bas)
+                            // roomSocket = sharedSocket,
                             isSolo = true,
                             onLeave = {
                                 sharedSocket.resetAfterGameEnd()
                                 sharedSocket.closeRoomConnection()
                                 inSoloGame = false
                                 soloRoomCode = null
-                            }
+                            },
+                            gameRepo = gameRepo
                         )
                     }
 
-                    // 🔹 MULTI : en partie
                     lobbyRoomCode != null && inMultiGame -> {
                         GameScreen(
                             roomCode = lobbyRoomCode!!,
-                            roomSocket = sharedSocket,
                             isSolo = false,
                             onLeave = {
                                 sharedSocket.resetAfterGameEnd()
                                 sharedSocket.closeRoomConnection()
                                 inMultiGame = false
                                 lobbyRoomCode = null
-                            }
+                            },
+                            gameRepo = gameRepo
                         )
                     }
 
-                    // 🔹 MULTI : lobby
                     lobbyRoomCode != null -> {
                         val lobbyVm: LobbyViewModel = viewModel(
                             key = "lobby-${lobbyRoomCode!!}",
                             factory = LobbyViewModelFactory(
-                                repo = LobbyRepository(sharedSocket),
+                                repo = lobbyRepo,
                                 roomCode = lobbyRoomCode!!
                             )
                         )
@@ -88,9 +85,7 @@ class MainActivity : ComponentActivity() {
                                 lobbyVm.leaveLobby()
                                 lobbyRoomCode = null
                             },
-                            onNavigateToGame = {
-                                inMultiGame = true
-                            }
+                            onNavigateToGame = { inMultiGame = true }
                         )
                     }
 
