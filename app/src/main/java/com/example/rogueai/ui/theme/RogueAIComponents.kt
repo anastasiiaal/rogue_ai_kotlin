@@ -2,6 +2,7 @@ package com.example.rogueai.ui.theme
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -142,5 +143,44 @@ fun RogueAccentButton(
         )
     ) {
         Text(text)
+    }
+}
+
+@Composable
+fun RogueChoiceButton(
+    text: String,
+    selected: Boolean,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val shape = RoundedCornerShape(12.dp)
+
+    val colors = ButtonDefaults.buttonColors(
+        containerColor = when {
+            selected -> RoguePalette.ButtonYellow
+            else -> RoguePalette.CardBlue
+        },
+        contentColor = when {
+            selected -> RoguePalette.ButtonYellowText
+            else -> androidx.compose.ui.graphics.Color.White
+        },
+        disabledContainerColor = RoguePalette.ButtonSalmon,
+        disabledContentColor = RoguePalette.CardBlue
+    )
+
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier,
+        shape = shape,
+        colors = colors,
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold
+        )
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.example.rogueai.ui.theme.RogueChoiceButton
 
 /**
  * Commande de type "slider".
@@ -40,12 +41,7 @@ fun SliderCommandView(
             style = MaterialTheme.typography.bodyMedium
         )
 
-//        Text(
-//            text = "Type: slider – Valeur actuelle: $actualStatus",
-//            style = MaterialTheme.typography.bodySmall
-//        )
-
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         if (actions.isEmpty() && actualStatus.isBlank()) {
             Text(
@@ -55,74 +51,45 @@ fun SliderCommandView(
             return
         }
 
-//        Text(
-//            text = "Choisis une valeur :",
-//            style = MaterialTheme.typography.bodySmall
-//        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // Liste stable des valeurs à afficher
         val allValues = (actions + actualStatus)
             .filter { it.isNotBlank() }
             .distinct()
             .sortedBy { it.toIntOrNull() ?: 0 }
 
         val clickableSet = actions.toSet()
-        val chunkSize = 2
 
-        allValues.chunked(chunkSize).forEach { chunk ->
+        // 5 / 6 par ligne
+        val columnsPerRow = if (allValues.size >= 8) 6 else 5
+
+        val buttonHeight = 32.dp
+
+        allValues.chunked(columnsPerRow).forEach { rowValues ->
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                chunk.forEach { value ->
-                    val isSelected = value == actualStatus
-                    val isClickable = clickableSet.contains(value)
+                rowValues.forEach { value ->
+                    val selected = value == actualStatus
+                    val clickable = clickableSet.contains(value)
 
-                    val baseModifier = Modifier
-                        .weight(1f, fill = true)
-                        .height(44.dp) // un peu plus haut pour du confort
+                    RogueChoiceButton(
+                        text = value,
+                        selected = selected,
+                        enabled = clickable && !selected, // sélection = non cliquable
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(buttonHeight),
+                        onClick = { onExecuteAction(commandId, value) }
+                    )
+                }
 
-                    when {
-                        // Valeur actuelle : bouton plein, désactivé
-                        isSelected -> {
-                            Button(
-                                onClick = { /* rien */ },
-                                enabled = false,
-                                shape = RoundedCornerShape(4.dp),
-                                modifier = baseModifier
-                            ) {
-                                Text(value)
-                            }
-                        }
-
-                        // Valeur cliquable
-                        isClickable -> {
-                            OutlinedButton(
-                                onClick = { onExecuteAction(commandId, value) },
-                                shape = RoundedCornerShape(4.dp),
-                                modifier = baseModifier
-                            ) {
-                                Text(value)
-                            }
-                        }
-
-                        // Valeur affichée mais non cliquable (sécurité)
-                        else -> {
-                            OutlinedButton(
-                                onClick = { /* non autorisé */ },
-                                enabled = false,
-                                shape = RoundedCornerShape(4.dp),
-                                modifier = baseModifier
-                            ) {
-                                Text(value)
-                            }
-                        }
-                    }
+                // garde des colonnes bien alignées même si dernière ligne incomplète
+                repeat(columnsPerRow - rowValues.size) {
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
-            Spacer(modifier = Modifier.height(4.dp))
+
+            Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }
