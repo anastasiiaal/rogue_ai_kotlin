@@ -26,6 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import com.example.rogueai.data.GameRepository
 
 /**
  * Écran de jeu principal, utilisé à la fois pour le mode solo et le mode multi.
@@ -36,14 +37,14 @@ import androidx.compose.ui.text.AnnotatedString
 @Composable
 fun GameScreen(
     roomCode: String,
-    roomSocket: RoomSocket,
+    gameRepo: GameRepository,
     isSolo: Boolean,
     onLeave: () -> Unit
 ) {
     val gameVm: GameViewModel = viewModel(
         key = "game-$roomCode-$isSolo",
         factory = GameViewModelFactory(
-            socket = roomSocket,
+            repo = gameRepo,
             roomCode = roomCode,
             isSolo = isSolo
         )
