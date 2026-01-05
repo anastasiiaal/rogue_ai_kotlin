@@ -25,10 +25,11 @@ import androidx.compose.runtime.LaunchedEffect
 import com.example.rogueai.data.GameRepository
 
 /**
- * Écran de jeu principal, utilisé à la fois pour le mode solo et le mode multi.
- *
- * @param isSolo  true = on ouvre la connexion WS ici + ready auto
- *                false = la connexion est gérée par le Lobby (multi)
+ * Main game screen composable.
+ * @param roomCode  the game room code
+ * @param gameRepo  the game repository
+ * @param onLeave   callback when the player leaves the game
+ * @param isSolo    whether the game is in solo mode
  */
 @Composable
 fun GameScreen(
@@ -53,7 +54,7 @@ fun GameScreen(
     val gameEndedJson by gameVm.gameEnded.collectAsState()
     LaunchedEffect(playerBoardJson) {
         playerBoardJson?.let {
-            Log.d("ROGUELOG", "Board Reçu : ${it.toString(2)}") // le '2' c'est pour l'indentation
+            Log.d("ROGUELOG", "Board Reçu : ${it.toString(2)}") // '2' for pretty print'
         }
     }
     val endState = gameEndedJson
@@ -74,13 +75,13 @@ fun GameScreen(
         return
     }
 
-    // 🔹 Partie en cours
+    // Game ongoing screen
     val threat = playerBoardJson?.optInt("threat")
     val instruction = playerBoardJson?.optJSONObject("instruction")
     val board = playerBoardJson?.optJSONObject("board")
     val commandsArray = board?.optJSONArray("commands")
 
-    // DEBUG : dernier message WS brut data
+    // DEBUG : last raw WS message
 //    val lastRaw by gameVm.lastRawMessage.collectAsState()
 //    val clipboard = LocalClipboardManager.current
 //    val scroll = rememberScrollState()
@@ -105,7 +106,7 @@ fun GameScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())   // tout l’écran est scrollable
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
@@ -134,7 +135,7 @@ fun GameScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // DEBUG dernier message WS brut
+            // DEBUG : last raw WS message
 //            if (lastRaw != null) {
 //                Spacer(Modifier.height(12.dp))
 //
@@ -162,7 +163,7 @@ fun GameScreen(
 //                }
 //            }
 
-            // DEBUG game state brut
+            // DEBUG : game state
 //            Text(
 //                text = "État du jeu (backend) : $gameState",
 //                style = MaterialTheme.typography.bodySmall,
@@ -171,7 +172,7 @@ fun GameScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Menace + instruction
+            // Threat level and instruction
             if (playerBoardJson == null) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
@@ -181,7 +182,7 @@ fun GameScreen(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             } else {
-                // Barre de menace
+                // Threat level bar
                 ThreatBar(threatLevel = threat)
 
 //                Text(
@@ -197,7 +198,7 @@ fun GameScreen(
                     val timeout = instr.optLong("timeout", 0L)
                     val instrText = instr.optString("instruction_text", "")
 
-                    // On utilise instrText comme clé : si le texte change, le timer reset !
+                    // If instrText changes, restart the timer
                     if (timeout > 0L) {
                         InstructionTimer(
                             durationMs = timeout,
@@ -209,11 +210,11 @@ fun GameScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Texte de l’instruction
+                // Instruction text
                 instruction?.let { instr ->
                     val instrText = instr.optString("instruction_text", "Instruction inconnue")
 
-                    // DEBUG infos techniques
+                    // DEBUG : technical data
 //                    val expectedStatus = instr.optString("expected_status", "")
 //                    val commandType = instr.optString("command_type", "")
 //                    val timeout = instr.optLong("timeout", 0L)
@@ -225,7 +226,7 @@ fun GameScreen(
                         textAlign = TextAlign.Center,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
-                    // DEBUG infos techniques
+                    // DEBUG : technical data
 //                    Spacer(modifier = Modifier.height(6.dp))
 //                    Text(
 //                        text = "Type : $commandType – Attendu : $expectedStatus – Timeout : ${timeout}ms",
@@ -255,7 +256,7 @@ fun GameScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Grille de commandes (2 colonnes)
+            // Action cards in 2 columns
             if (commands.isNotEmpty()) {
                 Text(
                     text = "Commandes disponibles :",

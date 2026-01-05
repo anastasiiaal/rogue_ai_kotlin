@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
                 val roomsApi = remember { RoomsApi() }
                 val sharedSocket = remember { RoomSocket() }
 
-                // ✅ repos uniques (un par socket partagé)
+                // Unique repositories using the shared socket
                 val lobbyRepo = remember { LobbyRepository(sharedSocket) }
                 val gameRepo  = remember { GameRepository(sharedSocket) }
 
@@ -42,8 +42,8 @@ class MainActivity : ComponentActivity() {
                     soloRoomCode != null && inSoloGame -> {
                         GameScreen(
                             roomCode = soloRoomCode!!,
-                            // 👇 au lieu de passer socket, on passera le repo (voir note plus bas)
-                            // roomSocket = sharedSocket,
+                            // Instead of creating a separate solo socket/repo,
+                            // we use the same ones but indicate it's a solo game
                             isSolo = true,
                             onLeave = {
                                 sharedSocket.resetAfterGameEnd()

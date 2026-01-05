@@ -103,7 +103,7 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // 🔹 SOLO
+                // SOLO
                 RoguePrimaryButton(
                     text = if (isLoadingCreate) "Création en cours…" else "Jouer seul",
                     modifier = Modifier.fillMaxWidth(),
@@ -141,7 +141,7 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // 🔹 MULTI
+                // MULTI
                 RogueSecondaryButton(
                     text = "Créer une partie multijoueur",
                     modifier = Modifier.fillMaxWidth(),
@@ -168,7 +168,7 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 🔹 JOIN
+                // JOIN
                 RogueAccentButton(
                     text = "Rejoindre une partie",
                     modifier = Modifier.fillMaxWidth(),

@@ -42,7 +42,7 @@ class RoomSocket {
     private val _playerBoard = MutableStateFlow<JSONObject?>(null)
     val playerBoard: StateFlow<JSONObject?> = _playerBoard
 
-    // 🔍 Debug : dernier message brut reçu
+    // Debug : last received message (raw)
     private val _lastRawMessage = MutableStateFlow<String?>(null)
     val lastRawMessage: StateFlow<String?> = _lastRawMessage
 
@@ -51,7 +51,7 @@ class RoomSocket {
     fun openRoomConnection(roomCode: String) {
         val normalized = roomCode.trim().uppercase()
 
-        // Si un socket existe, on le ferme proprement pour éviter les doubles listeners
+        // If socket exists, close it first
         if (webSocket != null) {
             println("WS: closing previous socket before reconnect")
             webSocket?.close(1000, "Reconnect")
@@ -60,7 +60,7 @@ class RoomSocket {
 
         currentRoomCode = normalized
 
-        // reset AVANT d’ouvrir la connexion
+        // Reset before connecting
         _gameState.value = "unknown"
         _gameStarted.value = false
         _gameEnded.value = null
@@ -92,7 +92,7 @@ class RoomSocket {
     }
 
     // ----------------------------------------------------------------
-    // ENVOI
+    // SENDERS
     // ----------------------------------------------------------------
 
     fun sendReadyFlag(ready: Boolean): Boolean {
@@ -153,7 +153,7 @@ class RoomSocket {
 
                     "game_state" -> {
                         val state = payload.optString("state")
-                        _gameState.value = state   // ICI qu’on met _gameState.value = state
+                        _gameState.value = state
 
                         when (state) {
                             "lobby_waiting",

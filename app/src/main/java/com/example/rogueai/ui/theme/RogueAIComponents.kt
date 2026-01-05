@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
- * Fond dégradé bleu foncé utilisé sur les écrans principaux.
+ * Dark blue background gradient used throughout the app
  */
 fun Modifier.rogueBackground(): Modifier =
     this.background(
@@ -30,7 +30,7 @@ fun Modifier.rogueBackground(): Modifier =
     )
 
 /**
- * Carte principale utilisée sur Home, Lobby, etc.
+ * Card used as main container on most screens
  */
 @Composable
 fun RogueMainCard(
@@ -52,7 +52,7 @@ fun RogueMainCard(
 }
 
 /**
- * Petit chip de titre "ROGUE AI" en haut des écrans.
+ * RogueAi title chip
  */
 @Composable
 fun RogueChipTitle(text: String = "ROGUE AI") {
@@ -71,7 +71,7 @@ fun RogueChipTitle(text: String = "ROGUE AI") {
 }
 
 /**
- * Bouton principal (ex : Jouer seul).
+ * Main button (e.g. : "Démarrer une partie").
  */
 @Composable
 fun RoguePrimaryButton(
@@ -99,7 +99,7 @@ fun RoguePrimaryButton(
 }
 
 /**
- * Bouton secondaire (ex : Créer une partie multi).
+ * Secondary button (e.g. : "Rejoindre une partie").
  */
 @Composable
 fun RogueSecondaryButton(
@@ -123,7 +123,7 @@ fun RogueSecondaryButton(
 }
 
 /**
- * Bouton accent (ex : Rejoindre une partie).
+ * Accent button (e.g. : "Rejoindre une partie").
  */
 @Composable
 fun RogueAccentButton(
@@ -146,6 +146,9 @@ fun RogueAccentButton(
     }
 }
 
+/**
+ * Choice button used in command views
+ */
 @Composable
 fun RogueChoiceButton(
     text: String,

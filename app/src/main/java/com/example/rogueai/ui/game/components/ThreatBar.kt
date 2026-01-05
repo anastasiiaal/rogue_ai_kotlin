@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.rogueai.ui.theme.RoguePalette
 
@@ -16,9 +15,9 @@ fun ThreatBar(
     threatLevel: Int?,
     modifier: Modifier = Modifier
 ) {
-    // Si le niveau de menace est nul, on n'affiche rien
+    // If threat level is null, do not display the bar
     threatLevel?.let { level ->
-        // Détermination de la couleur via la palette centrale
+        // Colors based on threat level
         val barColor = when {
             level <= 20 -> RoguePalette.ThreatVibrantGreen
             level <= 40 -> RoguePalette.ThreatLightGreen

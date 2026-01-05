@@ -16,11 +16,10 @@ class GameViewModel(
     val playerBoard: StateFlow<JSONObject?> = repo.observePlayerBoard()
     val gameEnded: StateFlow<JSONObject?> = repo.observeGameEnded()
 
-    // DEBUG dernier message WS brut
+    // DEBUG : last raw WS message
     val lastRawMessage: StateFlow<String?> = repo.observeLastRawMessage()
 
     init {
-        // même logique qu'avant
         if (isSolo) {
             repo.connect(roomCode)
             repo.sendReady(true)

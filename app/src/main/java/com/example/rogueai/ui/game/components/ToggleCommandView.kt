@@ -8,7 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 // --- Helpers -----------------------------------------------------------------
@@ -42,15 +41,17 @@ private fun BinaryToggleButton(
     }
 }
 
-// --- API publique ------------------------------------------------------------
+// --- piblic API ------------------------------------------------------------
 
 /**
- * Commande de type "toggle" (inclut ON_OFF_BUTTON, TOGGLE, CUSTOM_BUTTON).
- *
- * On adapte l’UI selon styleType :
- *  - onoff_button    -> 1 gros bouton On / Off
- *  - custom_button   -> 2 boutons avec labels personnalisés
- *  - toggle (simple) -> 1 bouton binaire ou liste d’actions
+ * View for a TOGGLE command
+ * @param commandId ID of the command
+ * @param name Name of the command
+ * @param styleType Style of the toggle (e.g., "onoff_button", "custom_button")
+ * @param actualStatus Current status of the command
+ * @param actions List of possible actions for the command
+ * @param isHighlighted Whether the command is highlighted
+ * @param onExecuteAction Callback when an action is executed
  */
 @Composable
 fun ToggleCommandView(
@@ -66,7 +67,7 @@ fun ToggleCommandView(
     val style = styleType.lowercase()
 
     Column {
-        // Titre
+        // Title
         Text(
             text = titlePrefix + name,
             style = MaterialTheme.typography.bodyMedium
@@ -86,7 +87,7 @@ fun ToggleCommandView(
         }
 
         when (style) {
-            // 1) ON/OFF → bouton "On"/"Off"
+            // 1) ON/OFF → "On"/"Off" button
             "onoff_button" -> {
                 OnOffToggleContent(
                     commandId = commandId,
@@ -99,7 +100,7 @@ fun ToggleCommandView(
             // 2) CUSTOM_BUTTON
             "custom_button" -> {
                 if (actions.size <= 1 && isBinaryStatus(actualStatus)) {
-                    // Cas binaire classique
+                    // Standard binary toggle
                     BinaryToggleButton(
                         commandId = commandId,
                         actualStatus = actualStatus,
@@ -107,7 +108,7 @@ fun ToggleCommandView(
                         onExecuteAction = onExecuteAction
                     )
                 } else {
-                    // Vrai mode custom : deux boutons distincts
+                    // Two different buttons
                     CustomToggleDoubleButtons(
                         commandId = commandId,
                         actualStatus = actualStatus,
@@ -117,7 +118,7 @@ fun ToggleCommandView(
                 }
             }
 
-            // 3) toggle simple ou style inconnu
+            // 3) Simple toggle
             else -> {
                 GenericToggleContent(
                     commandId = commandId,
@@ -130,12 +131,11 @@ fun ToggleCommandView(
     }
 }
 
-// --- Implémentations privées -------------------------------------------------
+// --- Private implementations -------------------------------------------------
 
 /**
  * ON_OFF_BUTTON :
- *   - un seul gros bouton
- *   - texte "On" / "Off" selon l’état actuel
+ * - single button showing "On" or "Off" based on actualStatus
  */
 @Composable
 private fun OnOffToggleContent(
@@ -159,9 +159,7 @@ private fun OnOffToggleContent(
 }
 
 /**
- * CUSTOM_BUTTON avec deux actions différentes :
- *   - on affiche 2 boutons côte à côte
- *   - celui qui correspond à actualStatus apparaît "plein"
+ * CUSTOM_BUTTON with two actions → two buttons side by side
  */
 @Composable
 private fun CustomToggleDoubleButtons(
@@ -194,9 +192,7 @@ private fun CustomToggleDoubleButtons(
 }
 
 /**
- * Fallback générique :
- *   - si toggle binaire (1 action + statut binaire) → Activé / Désactivé
- *   - sinon : un bouton "plein" pour la première action, outline pour les autres
+ * Fallback generic toggle content
  */
 @Composable
 private fun GenericToggleContent(
@@ -205,7 +201,7 @@ private fun GenericToggleContent(
     actions: List<String>,
     onExecuteAction: (String, String) -> Unit
 ) {
-    // Cas toggle simple → Activé / Désactivé
+    // Simple binary toggle
     if (actions.size <= 1 && isBinaryStatus(actualStatus)) {
         BinaryToggleButton(
             commandId = commandId,
@@ -216,7 +212,7 @@ private fun GenericToggleContent(
         return
     }
 
-    // Sinon : liste d’actions
+    // Else: list all actions as buttons
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         actions.forEachIndexed { index, action ->
             if (index == 0) {

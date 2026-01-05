@@ -36,15 +36,15 @@ fun InstructionTimer(
     val millis = timeLeft % 1000
     val formattedTime = String.format(Locale.US, "%d.%03d", seconds, millis)
 
-    // --- COULEUR LOGIQUE ---
-    // On récupère la couleur de texte actuelle de l'interface (Default)
+    // --- Logical colour ---
+    // Get the default content color from the theme
     val defaultColor = LocalContentColor.current
-    // On passe au rouge seulement si < 3000ms
+    // Change color (to red) if less than 3 seconds
     val timerColor = if (timeLeft < 3000) RoguePalette.ThreatRed else defaultColor
 
     Text(
         text = formattedTime,
-        style = MaterialTheme.typography.titleLarge.copy( // Taille plus sobre (titleLarge au lieu de display)
+        style = MaterialTheme.typography.titleLarge.copy(
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold
         ),

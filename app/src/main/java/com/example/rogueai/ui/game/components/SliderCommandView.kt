@@ -1,29 +1,13 @@
 package com.example.rogueai.ui.game.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.rogueai.ui.theme.RogueChoiceButton
 
-/**
- * Commande de type "slider".
- *
- * Exemple de payload :
- * {
- *   id: "volume_hallucinations",
- *   name: "Volume hallucinations",
- *   type: "slider",
- *   styleType: "slider",
- *   actual_status: "0",
- *   action_possible: ["1","2",...,"10"]
- * }
- */
 @Composable
 fun SliderCommandView(
     commandId: String,
@@ -75,7 +59,7 @@ fun SliderCommandView(
                     RogueChoiceButton(
                         text = value,
                         selected = selected,
-                        enabled = clickable && !selected, // sélection = non cliquable
+                        enabled = clickable && !selected, // selected = non clickable
                         modifier = Modifier
                             .weight(1f)
                             .height(buttonHeight),
@@ -83,7 +67,7 @@ fun SliderCommandView(
                     )
                 }
 
-                // garde des colonnes bien alignées même si dernière ligne incomplète
+                // keep columns aligned even if last row is not full
                 repeat(columnsPerRow - rowValues.size) {
                     Spacer(modifier = Modifier.weight(1f))
                 }
